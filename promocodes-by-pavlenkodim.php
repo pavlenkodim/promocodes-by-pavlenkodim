@@ -1,12 +1,12 @@
 <?php
 /**
- * Plugin Name: Promocode by DimDev
- * Plugin URI: https://github.com/dimdev/promocode-by-dimdev
+ * Plugin Name: Promocodes by Pavlenkodim
+ * Plugin URI: https://github.com/pavlenkodim/promocodes-by-pavlenkodim
  * Description: Плагин для создания промокодов и квизов с генерацией наград
  * Version: 1.0.0
- * Author: DimDev
+ * Author: Dmitriy Pavlenko
  * License: GPL v2 or later
- * Text Domain: promocode-by-dimdev
+ * Text Domain: promocodes-by-pavlenkodim
  */
 
 // Предотвращение прямого доступа
@@ -15,11 +15,11 @@ if (!defined('ABSPATH')) {
 }
 
 // Константы плагина
-define('PROMOCODE_PLUGIN_URL', plugin_dir_url(__FILE__));
-define('PROMOCODE_PLUGIN_PATH', plugin_dir_path(__FILE__));
-define('PROMOCODE_PLUGIN_VERSION', '1.0.0');
+define('PROMOCODES_PLUGIN_URL', plugin_dir_url(__FILE__));
+define('PROMOCODES_PLUGIN_PATH', plugin_dir_path(__FILE__));
+define('PROMOCODES_PLUGIN_VERSION', '1.0.0');
 
-class PromocodeByDimDev {
+class PromocodesByPavlenkodim {
     
     public function __construct() {
         add_action('plugins_loaded', array($this, 'init'));
@@ -29,7 +29,7 @@ class PromocodeByDimDev {
     
     public function init() {
         // Загрузка перевода
-        load_plugin_textdomain('promocode-by-dimdev', false, dirname(plugin_basename(__FILE__)) . '/languages');
+        load_plugin_textdomain('promocodes-by-pavlenkodim', false, dirname(plugin_basename(__FILE__)) . '/languages');
         
         // Инициализация компонентов
         $this->init_database();
@@ -81,7 +81,7 @@ class PromocodeByDimDev {
         $charset_collate = $wpdb->get_charset_collate();
         
         // Таблица промокодов
-        $table_promocodes = $wpdb->prefix . 'promocodes_dimdev';
+        $table_promocodes = $wpdb->prefix . 'promocodes_pavlenkodim';
         $sql_promocodes = "CREATE TABLE $table_promocodes (
             id mediumint(9) NOT NULL AUTO_INCREMENT,
             code varchar(12) NOT NULL,
@@ -95,7 +95,7 @@ class PromocodeByDimDev {
         ) $charset_collate;";
         
         // Таблица квизов
-        $table_quizzes = $wpdb->prefix . 'quizzes_dimdev';
+        $table_quizzes = $wpdb->prefix . 'quizzes_pavlenkodim';
         $sql_quizzes = "CREATE TABLE $table_quizzes (
             id mediumint(9) NOT NULL AUTO_INCREMENT,
             title varchar(255) NOT NULL,
@@ -105,7 +105,7 @@ class PromocodeByDimDev {
         ) $charset_collate;";
         
         // Таблица вопросов квиза
-        $table_quiz_questions = $wpdb->prefix . 'quiz_questions_dimdev';
+        $table_quiz_questions = $wpdb->prefix . 'quiz_questions_pavlenkodim';
         $sql_questions = "CREATE TABLE $table_quiz_questions (
             id mediumint(9) NOT NULL AUTO_INCREMENT,
             quiz_id mediumint(9) NOT NULL,
@@ -118,7 +118,7 @@ class PromocodeByDimDev {
         ) $charset_collate;";
         
         // Таблица вариантов ответов
-        $table_quiz_answers = $wpdb->prefix . 'quiz_answers_dimdev';
+        $table_quiz_answers = $wpdb->prefix . 'quiz_answers_pavlenkodim';
         $sql_answers = "CREATE TABLE $table_quiz_answers (
             id mediumint(9) NOT NULL AUTO_INCREMENT,
             question_id mediumint(9) NOT NULL,
@@ -185,16 +185,16 @@ class PromocodeByDimDev {
     }
     
     public function promocodes_admin_page() {
-        include_once PROMOCODE_PLUGIN_PATH . 'admin/promocodes-admin.php';
+        include_once PROMOCODES_PLUGIN_PATH . 'admin/promocodes-admin.php';
     }
     
     public function quiz_admin_page() {
-        include_once PROMOCODE_PLUGIN_PATH . 'admin/quiz-admin.php';
+        include_once PROMOCODES_PLUGIN_PATH . 'admin/quiz-admin.php';
     }
     
     public function enqueue_frontend_scripts() {
-        wp_enqueue_style('promocode-frontend', PROMOCODE_PLUGIN_URL . 'assets/frontend.css', array(), PROMOCODE_PLUGIN_VERSION);
-        wp_enqueue_script('promocode-frontend', PROMOCODE_PLUGIN_URL . 'assets/frontend.js', array('jquery'), PROMOCODE_PLUGIN_VERSION, true);
+        wp_enqueue_style('promocode-frontend', PROMOCODES_PLUGIN_URL . 'assets/frontend.css', array(), PROMOCODES_PLUGIN_VERSION);
+        wp_enqueue_script('promocode-frontend', PROMOCODES_PLUGIN_URL . 'assets/frontend.js', array('jquery'), PROMOCODES_PLUGIN_VERSION, true);
         
         wp_localize_script('promocode-frontend', 'promocode_ajax', array(
             'ajax_url' => admin_url('admin-ajax.php'),
@@ -204,8 +204,8 @@ class PromocodeByDimDev {
     
     public function enqueue_admin_scripts($hook) {
         if (strpos($hook, 'promocode') !== false || strpos($hook, 'quiz') !== false) {
-            wp_enqueue_style('promocode-admin', PROMOCODE_PLUGIN_URL . 'assets/admin.css', array(), PROMOCODE_PLUGIN_VERSION);
-            wp_enqueue_script('promocode-admin', PROMOCODE_PLUGIN_URL . 'assets/admin.js', array('jquery'), PROMOCODE_PLUGIN_VERSION, true);
+            wp_enqueue_style('promocode-admin', PROMOCODES_PLUGIN_URL . 'assets/admin.css', array(), PROMOCODES_PLUGIN_VERSION);
+            wp_enqueue_script('promocode-admin', PROMOCODES_PLUGIN_URL . 'assets/admin.js', array('jquery'), PROMOCODES_PLUGIN_VERSION, true);
             wp_enqueue_media();
         }
     }
@@ -294,7 +294,7 @@ class PromocodeByDimDev {
     public function check_promocode($code) {
         global $wpdb;
         
-        $table = $wpdb->prefix . 'promocodes_dimdev';
+        $table = $wpdb->prefix . 'promocodes_pavlenkodim';
         $promocode = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM $table WHERE code = %s AND is_used = 0",
             $code
@@ -328,9 +328,9 @@ class PromocodeByDimDev {
     public function get_quiz_data($quiz_id) {
         global $wpdb;
         
-        $quiz_table = $wpdb->prefix . 'quizzes_dimdev';
-        $questions_table = $wpdb->prefix . 'quiz_questions_dimdev';
-        $answers_table = $wpdb->prefix . 'quiz_answers_dimdev';
+        $quiz_table = $wpdb->prefix . 'quizzes_pavlenkodim';
+        $questions_table = $wpdb->prefix . 'quiz_questions_pavlenkodim';
+        $answers_table = $wpdb->prefix . 'quiz_answers_pavlenkodim';
         
         $quiz = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM $quiz_table WHERE id = %d AND is_active = 1",
@@ -389,8 +389,8 @@ class PromocodeByDimDev {
     public function process_quiz($quiz_id, $answers) {
         global $wpdb;
         
-        $questions_table = $wpdb->prefix . 'quiz_questions_dimdev';
-        $answers_table = $wpdb->prefix . 'quiz_answers_dimdev';
+        $questions_table = $wpdb->prefix . 'quiz_questions_pavlenkodim';
+        $answers_table = $wpdb->prefix . 'quiz_answers_pavlenkodim';
         
         // Получаем правильные ответы
         $correct_answers = $wpdb->get_results($wpdb->prepare(
@@ -441,15 +441,19 @@ class PromocodeByDimDev {
     public function generate_and_save_promocode($prize = 'Специальный приз!') {
         global $wpdb;
         
-        $table = $wpdb->prefix . 'promocodes_dimdev';
-        $code = $this->generate_promocode();
+        $table = $wpdb->prefix . 'promocodes_pavlenkodim';
         
-        // Проверяем уникальность кода
-        while ($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table WHERE code = %s", $code)) > 0) {
+        // Генерируем уникальный промокод
+        do {
             $code = $this->generate_promocode();
-        }
+            $exists = $wpdb->get_var($wpdb->prepare(
+                "SELECT id FROM $table WHERE code = %s",
+                $code
+            ));
+        } while ($exists);
         
-        $wpdb->insert(
+        // Сохраняем промокод
+        $result = $wpdb->insert(
             $table,
             array(
                 'code' => $code,
@@ -458,7 +462,7 @@ class PromocodeByDimDev {
             )
         );
         
-        return $code;
+        return $result ? $code : false;
     }
     
     // Методы для админ панели
@@ -472,23 +476,35 @@ class PromocodeByDimDev {
         
         if ($count < 1 || $count > 100) {
             add_action('admin_notices', function() {
-                echo '<div class="notice notice-error"><p>Количество должно быть от 1 до 100</p></div>';
+                echo '<div class="notice notice-error"><p>Некорректное количество промокодов (1-100)</p></div>';
             });
             return;
         }
         
         global $wpdb;
-        $table = $wpdb->prefix . 'promocodes_dimdev';
+        $table = $wpdb->prefix . 'promocodes_pavlenkodim';
+        
         $generated = 0;
+        $failed = 0;
         
         for ($i = 0; $i < $count; $i++) {
-            $code = $this->generate_promocode();
-            
-            // Проверяем уникальность
-            while ($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table WHERE code = %s", $code)) > 0) {
+            // Генерируем уникальный промокод
+            $attempts = 0;
+            do {
                 $code = $this->generate_promocode();
+                $exists = $wpdb->get_var($wpdb->prepare(
+                    "SELECT id FROM $table WHERE code = %s",
+                    $code
+                ));
+                $attempts++;
+            } while ($exists && $attempts < 10);
+            
+            if ($attempts >= 10) {
+                $failed++;
+                continue;
             }
             
+            // Сохраняем промокод
             $result = $wpdb->insert(
                 $table,
                 array(
@@ -500,12 +516,22 @@ class PromocodeByDimDev {
             
             if ($result) {
                 $generated++;
+            } else {
+                $failed++;
             }
         }
         
-        add_action('admin_notices', function() use ($generated) {
-            echo '<div class="notice notice-success"><p>Успешно сгенерировано ' . $generated . ' промокодов</p></div>';
-        });
+        if ($generated > 0) {
+            add_action('admin_notices', function() use ($generated) {
+                echo '<div class="notice notice-success"><p>Успешно сгенерировано промокодов: ' . $generated . '</p></div>';
+            });
+        }
+        
+        if ($failed > 0) {
+            add_action('admin_notices', function() use ($failed) {
+                echo '<div class="notice notice-warning"><p>Не удалось сгенерировать: ' . $failed . '</p></div>';
+            });
+        }
     }
     
     public function handle_add_promocode() {
@@ -516,24 +542,45 @@ class PromocodeByDimDev {
         $code = strtoupper(sanitize_text_field($_POST['code']));
         $prize = sanitize_text_field($_POST['prize']);
         
-        if (!preg_match('/^[A-Z0-9]{12}$/', $code)) {
+        // Валидация
+        if (empty($code) || empty($prize)) {
             add_action('admin_notices', function() {
-                echo '<div class="notice notice-error"><p>Промокод должен содержать 12 символов (только латинские буквы и цифры)</p></div>';
+                echo '<div class="notice notice-error"><p>Заполните все поля</p></div>';
+            });
+            return;
+        }
+        
+        if (strlen($code) !== 12) {
+            add_action('admin_notices', function() {
+                echo '<div class="notice notice-error"><p>Промокод должен содержать 12 символов</p></div>';
+            });
+            return;
+        }
+        
+        if (!preg_match('/^[A-Z0-9]+$/', $code)) {
+            add_action('admin_notices', function() {
+                echo '<div class="notice notice-error"><p>Промокод может содержать только латинские буквы и цифры</p></div>';
             });
             return;
         }
         
         global $wpdb;
-        $table = $wpdb->prefix . 'promocodes_dimdev';
+        $table = $wpdb->prefix . 'promocodes_pavlenkodim';
         
         // Проверяем уникальность
-        if ($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table WHERE code = %s", $code)) > 0) {
+        $exists = $wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM $table WHERE code = %s",
+            $code
+        ));
+        
+        if ($exists) {
             add_action('admin_notices', function() {
                 echo '<div class="notice notice-error"><p>Промокод уже существует</p></div>';
             });
             return;
         }
         
+        // Сохраняем
         $result = $wpdb->insert(
             $table,
             array(
@@ -562,7 +609,7 @@ class PromocodeByDimDev {
         $promocode_id = intval($_POST['promocode_id']);
         
         global $wpdb;
-        $table = $wpdb->prefix . 'promocodes_dimdev';
+        $table = $wpdb->prefix . 'promocodes_pavlenkodim';
         
         $result = $wpdb->delete($table, array('id' => $promocode_id));
         
@@ -579,22 +626,19 @@ class PromocodeByDimDev {
     
     public function get_all_promocodes() {
         global $wpdb;
-        $table = $wpdb->prefix . 'promocodes_dimdev';
-        
+        $table = $wpdb->prefix . 'promocodes_pavlenkodim';
         return $wpdb->get_results("SELECT * FROM $table ORDER BY created_date DESC");
     }
     
-    // Методы для работы с квизами
     public function get_all_quizzes() {
         global $wpdb;
-        $table = $wpdb->prefix . 'quizzes_dimdev';
-        
+        $table = $wpdb->prefix . 'quizzes_pavlenkodim';
         return $wpdb->get_results("SELECT * FROM $table ORDER BY created_date DESC");
     }
     
     public function get_quiz_questions_count($quiz_id) {
         global $wpdb;
-        $table = $wpdb->prefix . 'quiz_questions_dimdev';
+        $table = $wpdb->prefix . 'quiz_questions_pavlenkodim';
         
         return $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table WHERE quiz_id = %d", $quiz_id));
     }
@@ -614,7 +658,7 @@ class PromocodeByDimDev {
         }
         
         global $wpdb;
-        $table = $wpdb->prefix . 'quizzes_dimdev';
+        $table = $wpdb->prefix . 'quizzes_pavlenkodim';
         
         $result = $wpdb->insert(
             $table,
@@ -643,9 +687,9 @@ class PromocodeByDimDev {
         $quiz_id = intval($_POST['quiz_id']);
         
         global $wpdb;
-        $quiz_table = $wpdb->prefix . 'quizzes_dimdev';
-        $questions_table = $wpdb->prefix . 'quiz_questions_dimdev';
-        $answers_table = $wpdb->prefix . 'quiz_answers_dimdev';
+        $quiz_table = $wpdb->prefix . 'quizzes_pavlenkodim';
+        $questions_table = $wpdb->prefix . 'quiz_questions_pavlenkodim';
+        $answers_table = $wpdb->prefix . 'quiz_answers_pavlenkodim';
         
         // Удаляем ответы
         $wpdb->delete($answers_table, array('question_id' => array(
@@ -711,8 +755,8 @@ class PromocodeByDimDev {
         }
         
         global $wpdb;
-        $questions_table = $wpdb->prefix . 'quiz_questions_dimdev';
-        $answers_table = $wpdb->prefix . 'quiz_answers_dimdev';
+        $questions_table = $wpdb->prefix . 'quiz_questions_pavlenkodim';
+        $answers_table = $wpdb->prefix . 'quiz_answers_pavlenkodim';
         
         // Получаем следующий порядковый номер для вопроса
         $order_num = $wpdb->get_var($wpdb->prepare(
@@ -772,8 +816,8 @@ class PromocodeByDimDev {
         $question_id = intval($_POST['question_id']);
         
         global $wpdb;
-        $questions_table = $wpdb->prefix . 'quiz_questions_dimdev';
-        $answers_table = $wpdb->prefix . 'quiz_answers_dimdev';
+        $questions_table = $wpdb->prefix . 'quiz_questions_pavlenkodim';
+        $answers_table = $wpdb->prefix . 'quiz_answers_pavlenkodim';
         
         // Удаляем ответы
         $wpdb->delete($answers_table, array('question_id' => $question_id));
@@ -794,4 +838,4 @@ class PromocodeByDimDev {
 }
 
 // Инициализация плагина
-new PromocodeByDimDev(); 
+new PromocodesByPavlenkodim(); 
