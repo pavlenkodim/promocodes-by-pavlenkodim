@@ -80,20 +80,99 @@ jQuery(document).ready(function ($) {
     $(this).val(value);
   });
 
-  // Обработка форм квизов
-  $('[id^="quiz-form-"]').on("submit", function (e) {
-    e.preventDefault();
+  // Инициализация пошагового квиза
+  initStepQuiz();
 
-    var form = $(this);
+  function initStepQuiz() {
+    // Обработка кнопок навигации
+    $(document).on("click", ".quiz-btn-next", function () {
+      var currentStep = $(this).closest(".quiz-step");
+      if (validateCurrentStep(currentStep)) {
+        goToNextStep(currentStep);
+      }
+    });
+
+    $(document).on("click", ".quiz-btn-prev", function () {
+      var currentStep = $(this).closest(".quiz-step");
+      goToPrevStep(currentStep);
+    });
+
+    // Обработка финальной отправки квиза
+    $(document).on("click", ".quiz-btn-submit", function (e) {
+      e.preventDefault();
+      var currentStep = $(this).closest(".quiz-step");
+      if (validateCurrentStep(currentStep)) {
+        submitQuiz(currentStep.closest(".quiz-form"));
+      }
+    });
+  }
+
+  function validateCurrentStep(currentStep) {
+    var hasAnswers = currentStep.find("input:checked").length > 0;
+
+    if (!hasAnswers) {
+      var container = currentStep.closest(".quiz-container");
+      var resultContainer = container.find('[id^="quiz-result-"]');
+      showQuizResult(resultContainer, "Пожалуйста, выберите ответ перед продолжением", "error");
+      return false;
+    }
+
+    return true;
+  }
+
+  function goToNextStep(currentStep) {
+    var nextStep = currentStep.next(".quiz-step");
+    if (nextStep.length) {
+      currentStep.removeClass("active");
+      nextStep.addClass("active");
+      updateProgress(currentStep.closest(".quiz-container"));
+
+      // Прокручиваем к началу квиза
+      $("html, body").animate(
+        {
+          scrollTop: currentStep.closest(".quiz-container").offset().top - 50,
+        },
+        300
+      );
+    }
+  }
+
+  function goToPrevStep(currentStep) {
+    var prevStep = currentStep.prev(".quiz-step");
+    if (prevStep.length) {
+      currentStep.removeClass("active");
+      prevStep.addClass("active");
+      updateProgress(currentStep.closest(".quiz-container"));
+
+      // Прокручиваем к началу квиза
+      $("html, body").animate(
+        {
+          scrollTop: currentStep.closest(".quiz-container").offset().top - 50,
+        },
+        300
+      );
+    }
+  }
+
+  function updateProgress(quizContainer) {
+    var currentStepNumber = quizContainer.find(".quiz-step.active").data("step");
+    var totalSteps = quizContainer.find(".quiz-step").length;
+    var progressPercent = (currentStepNumber / totalSteps) * 100;
+
+    quizContainer.find(".quiz-progress-fill").css("width", progressPercent + "%");
+    quizContainer.find(".current-question").text(currentStepNumber);
+  }
+
+  function submitQuiz(form) {
     var quizContainer = form.closest(".quiz-container");
     var quizId = quizContainer.data("quiz-id");
     var resultContainer = $("#quiz-result-" + quizId);
 
-    // Собираем ответы
+    // Собираем ответы из всех шагов
     var answers = {};
     var hasAnswers = false;
 
-    form.find(".quiz-question").each(function () {
+    form.find(".quiz-step").each(function () {
       var questionId = $(this).data("question-id");
       var questionAnswers = [];
 
@@ -185,7 +264,7 @@ jQuery(document).ready(function ($) {
         form.removeClass("loading");
       },
     });
-  });
+  }
 
   // Функция отображения результата квиза
   function showQuizResult(container, message, type) {
@@ -272,35 +351,23 @@ jQuery(document).ready(function ($) {
     tempInput.remove();
   });
 
-  // Валидация ответов в реальном времени
-  $('.quiz-form input[type="radio"], .quiz-form input[type="checkbox"]').on("change", function () {
-    updateAnswerStyles();
+  // Валидация ответов в реальном времени для пошагового квиза
+  $(document).on(
+    "change",
+    '.quiz-form input[type="radio"], .quiz-form input[type="checkbox"]',
+    function () {
+      updateAnswerStyles();
 
-    // Проверяем, все ли вопросы имеют ответы
-    var form = $(this).closest(".quiz-form");
-    var totalQuestions = form.find(".quiz-question").length;
-    var answeredQuestions = 0;
-
-    form.find(".quiz-question").each(function () {
-      if ($(this).find("input:checked").length > 0) {
-        answeredQuestions++;
-      }
-    });
-
-    // Обновляем состояние кнопки отправки
-    var submitBtn = form.find(".quiz-submit-btn");
-    if (answeredQuestions === totalQuestions) {
-      submitBtn.removeClass("disabled").text("Завершить квиз");
-    } else {
-      submitBtn
-        .addClass("disabled")
-        .text("Ответьте на все вопросы (" + answeredQuestions + "/" + totalQuestions + ")");
+      // Очищаем предыдущие сообщения об ошибках
+      var container = $(this).closest(".quiz-container");
+      var resultContainer = container.find('[id^="quiz-result-"]');
+      resultContainer.removeClass("show");
     }
-  });
+  );
 
   // Плавная анимация появления элементов
   function animateElements() {
-    $(".quiz-question, .promocode-form").each(function (index) {
+    $(".quiz-container, .promocode-form").each(function (index) {
       var element = $(this);
       setTimeout(function () {
         element.addClass("animate-in");
@@ -311,17 +378,17 @@ jQuery(document).ready(function ($) {
   // Инициализация анимаций
   animateElements();
 
-  // Добавляем CSS класс для анимаций
+  // Добавляем CSS класс для анимаций и пошагового квиза
   $("<style>")
     .prop("type", "text/css")
     .html(
       `
-            .quiz-question, .promocode-form {
+            .quiz-container, .promocode-form {
                 opacity: 0;
                 transform: translateY(20px);
                 transition: all 0.6s ease;
             }
-            .quiz-question.animate-in, .promocode-form.animate-in {
+            .quiz-container.animate-in, .promocode-form.animate-in {
                 opacity: 1;
                 transform: translateY(0);
             }
@@ -329,9 +396,22 @@ jQuery(document).ready(function ($) {
                 border-color: #007cba !important;
                 background: rgba(0, 124, 186, 0.05);
             }
-            .quiz-submit-btn.disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
+            .quiz-step {
+                display: none;
+            }
+            .quiz-step.active {
+                display: block;
+                animation: slideIn 0.3s ease-in-out;
+            }
+            @keyframes slideIn {
+                from {
+                    opacity: 0;
+                    transform: translateX(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
             }
         `
     )

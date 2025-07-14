@@ -1,10 +1,10 @@
 <?php
 /**
- * Plugin Name: Promocodes by Pavlenkodim
+ * Plugin Name: Promocodes by Pavlenkodim - Norte Edition
  * Plugin URI: https://github.com/pavlenkodim/promocodes-by-pavlenkodim
- * Description: Плагин для создания промокодов и квизов с генерацией наград
- * Version: 1.0.0
- * Author: Dmitriy Pavlenko
+ * Description: Плагин для создания промокодов и пошаговых квизов - адаптирован для Norte.kz
+ * Version: 0.1.0
+ * Author: Dmitriy Pavlenko (Norte.kz)
  * License: GPL v2 or later
  * Text Domain: promocodes-by-pavlenkodim
  */
@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
 // Константы плагина
 define('PROMOCODES_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('PROMOCODES_PLUGIN_PATH', plugin_dir_path(__FILE__));
-define('PROMOCODES_PLUGIN_VERSION', '1.0.0');
+define('PROMOCODES_PLUGIN_VERSION', '0.1.0');
 
 class PromocodesByPavlenkodim {
     
@@ -222,10 +222,20 @@ class PromocodesByPavlenkodim {
         <div class="promocode-form-container">
             <form class="promocode-form" id="promocode-form">
                 <div class="promocode-input-group">
+                    <label for="promocode-input">Введите код:</label>
                     <input type="text" id="promocode-input" placeholder="<?php echo esc_attr($atts['placeholder']); ?>" maxlength="12" />
-                    <button type="submit"><?php echo esc_html($atts['button_text']); ?></button>
+                    <button type="submit">
+                        <svg width="126" height="126" viewBox="0 0 126 126" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M20.1598 63C20.1598 39.312 39.3118 20.16 62.9998 20.16C86.6878 20.16 105.84 39.312 105.84 63C105.84 86.688 86.6878 105.84 62.9998 105.84C39.3118 105.84 20.1598 86.688 20.1598 63ZM100.8 63C100.8 42.084 83.9158 25.2 62.9998 25.2C42.0838 25.2 25.1998 42.084 25.1998 63C25.1998 83.916 42.0838 100.8 62.9998 100.8C83.9158 100.8 100.8 83.916 100.8 63Z" fill="white"/>
+                            <path d="M58.7155 83.916L79.6315 63L58.7155 42.084L62.2435 38.556L86.6875 63L62.2435 87.444L58.7155 83.916Z" fill="white"/>
+                            <path d="M83.1602 60.48V65.52L40.3202 65.52V60.48L83.1602 60.48Z" fill="white"/>
+                        </svg>
+                        <?php echo esc_html($atts['button_text']); ?>
+                    </button>
                 </div>
-                <div class="promocode-result" id="promocode-result"></div>
+                <div class="promocode-result" id="promocode-result">
+
+                </div>
             </form>
         </div>
         <?php
@@ -248,10 +258,8 @@ class PromocodesByPavlenkodim {
         ob_start();
         ?>
         <div class="quiz-container" data-quiz-id="<?php echo $quiz_id; ?>">
-            <h3><?php echo esc_html($quiz_data['title']); ?></h3>
             <form class="quiz-form" id="quiz-form-<?php echo $quiz_id; ?>">
                 <?php $this->render_quiz_questions($quiz_data['questions']); ?>
-                <button type="submit" class="quiz-submit-btn">Завершить квиз</button>
             </form>
             <div class="quiz-result" id="quiz-result-<?php echo $quiz_id; ?>"></div>
         </div>
@@ -361,9 +369,23 @@ class PromocodesByPavlenkodim {
     }
     
     public function render_quiz_questions($questions) {
-        foreach ($questions as $question) {
-            echo '<div class="quiz-question" data-question-id="' . $question->id . '">';
-            echo '<h4>' . esc_html($question->question) . '</h4>';
+        $total_questions = count($questions);
+        
+        echo '<div class="quiz-progress">';
+        echo '<div class="quiz-progress-bar">';
+        echo '<div class="quiz-progress-fill" style="width: ' . (100 / $total_questions) . '%"></div>';
+        echo '</div>';
+        echo '<div class="quiz-progress-text">';
+        echo '<span class="current-question">1</span> из <span class="total-questions">' . $total_questions . '</span>';
+        echo '</div>';
+        echo '</div>';
+        
+        foreach ($questions as $index => $question) {
+            $is_first = ($index === 0);
+            $step_class = $is_first ? 'quiz-step active' : 'quiz-step';
+            
+            echo '<div class="' . $step_class . '" data-step="' . ($index + 1) . '" data-question-id="' . $question->id . '">';
+            echo '<h4 class="quiz-question-title">' . ($index + 1) . '. ' . esc_html($question->question) . '</h4>';
             echo '<div class="quiz-answers">';
             
             $input_type = $question->is_multiple ? 'checkbox' : 'radio';
@@ -382,6 +404,33 @@ class PromocodesByPavlenkodim {
             }
             
             echo '</div>';
+            
+            // Навигационные кнопки
+            echo '<div class="quiz-navigation">';
+            echo '<button type="button"' . ($is_first ? ' disabled' : '') . ' class="quiz-btn quiz-btn-prev">
+                <svg width="99" height="99" viewBox="0 0 99 99" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g>
+                    <path d="M82.7618 49.7366C82.7618 31.2137 67.7857 16.2378 49.2627 16.2378C30.7397 16.2378 15.7637 31.2137 15.7637 49.7366C15.7637 68.2595 30.7397 83.2355 49.2627 83.2355C67.7857 83.2355 82.7618 68.2595 82.7618 49.7366ZM19.7047 49.7366C19.7047 33.3813 32.9073 20.1788 49.2627 20.1788C65.6181 20.1788 78.8207 33.3813 78.8207 49.7366C78.8207 66.092 65.6181 79.2944 49.2627 79.2944C32.9073 79.2944 19.7047 66.092 19.7047 49.7366Z" fill="white"/>
+                    <path d="M52.6131 66.0919L36.2577 49.7366L52.6131 33.3813L49.8544 30.6226L30.7402 49.7366L49.8544 68.8507L52.6131 66.0919Z" fill="white"/>
+                    <path d="M33.5 47.7661V51.7072L66.9991 51.7072V47.7661L33.5 47.7661Z" fill="white"/>
+                    </g>
+                </svg> 
+                Назад
+            </button>';
+            if ($index < $total_questions - 1) {
+                echo '<button type="button" class="quiz-btn quiz-btn-next">
+                    <svg width="99" height="99" viewBox="0 0 99 99" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15.7647 49.2631C15.7647 30.7402 30.7405 15.7642 49.2632 15.7642C67.7859 15.7642 82.7617 30.7402 82.7617 49.2631C82.7617 67.7861 67.7859 82.7621 49.2632 82.7621C30.7405 82.7621 15.7647 67.7861 15.7647 49.2631ZM78.8207 49.2631C78.8207 32.9077 65.6184 19.7052 49.2632 19.7052C32.9081 19.7052 19.7057 32.9077 19.7057 49.2631C19.7057 65.6185 32.9081 78.821 49.2632 78.821C65.6184 78.821 78.8207 65.6185 78.8207 49.2631Z" fill="white"/>
+                        <path d="M45.9126 65.6185L62.2678 49.2632L45.9126 32.9078L48.6713 30.149L67.7852 49.2632L48.6713 68.3773L45.9126 65.6185Z" fill="white"/>
+                        <path d="M65.0273 47.2926V51.2337L31.5288 51.2337V47.2926L65.0273 47.2926Z" fill="white"/>
+                    </svg>
+                    Далее
+                </button>';
+            } else {
+                echo '<button type="submit" class="quiz-btn quiz-btn-submit">Завершить квиз</button>';
+            }
+            echo '</div>';
+            
             echo '</div>';
         }
     }
@@ -401,8 +450,13 @@ class PromocodesByPavlenkodim {
             $quiz_id
         ));
         
+        // Получаем общее количество вопросов в квизе
+        $total_questions = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $questions_table WHERE quiz_id = %d",
+            $quiz_id
+        ));
+        
         $correct_count = 0;
-        $total_questions = count($answers);
         
         // Подсчет правильных ответов
         foreach ($correct_answers as $correct) {
