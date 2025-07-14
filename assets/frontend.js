@@ -228,10 +228,17 @@ jQuery(document).ready(function ($) {
   function updateAnswerStyles() {
     $(".quiz-answer").each(function () {
       var input = $(this).find('input[type="radio"], input[type="checkbox"]');
+      var inputType = input.attr("type");
+
       if (input.is(":checked")) {
         $(this).addClass("selected");
+        if (inputType === "checkbox") {
+          $(this).addClass("selected-checkbox");
+        } else {
+          $(this).addClass("selected-radio");
+        }
       } else {
-        $(this).removeClass("selected");
+        $(this).removeClass("selected selected-checkbox selected-radio");
       }
     });
   }
